@@ -68,6 +68,8 @@ namespace PatrickBotCore
             }
             else if (message.MentionedUsers.Any(x => x.Username == _client.CurrentUser.Username))
             {
+                await message.Channel.TriggerTypingAsync();
+                
                 var subredditName = "programmerHumor";
 
                 var reddit = new Reddit();
