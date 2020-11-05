@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using RedditSharp;
@@ -44,49 +45,46 @@ namespace PatrickBotCore
 
             _client.MessageReceived += MessageReceived;
 
- 
+
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
 
         private async Task MessageReceived(SocketMessage message)
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json");
-
-            var configuration = builder.Build();
-
-
-            var RedditAppId = configuration["RedditAppId"];
-            var RedditAppSecret = configuration["RedditAppSecret"];
-
-
-            if (message.Content == "!ping")
+            if (message.MentionedUsers.Any(x => x.Username == _client.CurrentUser.Username))
             {
-                await message.Channel.SendMessageAsync("Pong!");
+                await SendMemeAsync(message);
             }
-            else if (message.MentionedUsers.Any(x => x.Username == _client.CurrentUser.Username))
-            {
-                await message.Channel.TriggerTypingAsync();
-                
-                var subredditName = "programmerHumor";
+        }
 
-                var reddit = new Reddit();
-                var subreddit = reddit.GetSubreddit($"/r/{subredditName}");
+        [Command(RunMode = RunMode.Async)]
+        public async Task SendMemeAsync(SocketMessage message)
+        {
+            await Log(msg: new LogMessage(message: "Starting the SendMessageAsync function", severity: LogSeverity.Info, source: "SendMessageAsync"));
 
-                var random = new Random();
+            var random = new Random();
 
-                var post = subreddit.Posts
-                    .Where(x => x.IsStickied == false)
-                    .Where(x => x.NSFW == false)
-                    .Skip(random.Next(1,40))
-                    .Take(1)
-                    .First();
+            var subreddits = new List<string>(){ "programmerHumor" };
+            var subredditName = subreddits[random.Next(subreddits.Count - 1)];
 
-                var embedBuilder = new EmbedBuilder();
+            var reddit = new Reddit();
+            var subreddit = reddit.GetSubreddit($"/r/{subredditName}");
+            await Log(msg: new LogMessage(message: "Got the subreddit", severity: LogSeverity.Info, source: "SendMessageAsync"));
+            await message.Channel.TriggerTypingAsync();
+            
 
-                var badWords = new List<string>() {
+            var post = subreddit.Posts
+                .Where(x => x.IsStickied == false)
+                .Where(x => x.NSFW == false)
+                .Skip(random.Next(1, 40))
+                .Take(1)
+                .First();
+            await Log(msg: new LogMessage(message: "Got the post", severity: LogSeverity.Info, source: "SendMessageAsync"));
+
+            var embedBuilder = new EmbedBuilder();
+
+            var badWords = new List<string>() {
                     "fuk",
                     "fuck",
                     "bitch",
@@ -94,25 +92,27 @@ namespace PatrickBotCore
                     "ass"
                 };
 
+            var topComment = post.Comments.Any()
+                ? post.Comments
+                    .Where(c => !c.Body.ToLower().Split(" ").ToList()
+                        .Any(p => badWords.Contains(p)))
+                    .OrderBy(c => c.Upvotes)
+                    .Select(c => c.Body)
+                    .FirstOrDefault() ?? "The top comment was too spicy for work, shame :("
+                : "Can't find a top comment";
+            await Log(msg: new LogMessage(message: "Got the top comment", severity: LogSeverity.Info, source: "SendMessageAsync"));
 
-                var topComment = post.Comments.Any() 
-                    ? post.Comments
-                        .Where(c => !c.Body.ToLower().Split(" ").ToList()
-                            .Any(p => badWords.Contains(p)))
-                        .OrderBy(c => c.Upvotes)
-                        .Select(c => c.Body)
-                        .FirstOrDefault() ?? "The top comment was too spicy for work, shame :("
-                    : "Can't find a top comment";
+            embedBuilder.WithTitle(post.Title);
+            embedBuilder.WithImageUrl(post.Url.ToString());
+            embedBuilder.WithFooter($"r/{post.SubredditName}");
+            embedBuilder.AddField("Upvotes", post.Upvotes, true);    // true - for inline
+                                                                     // embedBuilder.AddField("Top comment", topComment, false);
+            embedBuilder.WithColor(Color.Red);
+            await Log(msg: new LogMessage(message: "Built the embed", severity: LogSeverity.Info, source: "SendMessageAsync"));
 
-                embedBuilder.WithTitle(post.Title);
-                embedBuilder.WithFooter($"r/{post.SubredditName}");
-                embedBuilder.AddField("Upvotes", post.Upvotes, true);    // true - for inline
-                embedBuilder.AddField("Top comment", topComment, false);
-                embedBuilder.WithImageUrl(post.Url.ToString());
-                embedBuilder.WithColor(Color.Red);
-
-                await message.Channel.SendMessageAsync("", false, embedBuilder.Build());
-            }
+            // await message.Channel.TriggerTypingAsync();
+            await message.Channel.SendMessageAsync("", false, embedBuilder.Build());
+            await Log(msg: new LogMessage(message: "Message sent", severity: LogSeverity.Info, source: "SendMessageAsync"));
         }
 
         private Task Log(LogMessage msg)
