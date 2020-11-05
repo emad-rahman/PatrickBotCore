@@ -66,7 +66,7 @@ namespace PatrickBotCore
             {
                 await message.Channel.SendMessageAsync("Pong!");
             }
-            else if (message.Content == "!meme")
+            else if (message.MentionedUsers.Any(x => x.Username == _client.CurrentUser.Username))
             {
                 var subredditName = "programmerHumor";
 
@@ -99,8 +99,8 @@ namespace PatrickBotCore
                             .Any(p => badWords.Contains(p)))
                         .OrderBy(c => c.Upvotes)
                         .Select(c => c.Body)
-                        .FirstOrDefault()
-                    : "";
+                        .FirstOrDefault() ?? "The top comment was too spicy for work, shame :("
+                    : "Can't find a top comment";
 
                 embedBuilder.WithTitle(post.Title);
                 embedBuilder.WithFooter($"r/{post.SubredditName}");
