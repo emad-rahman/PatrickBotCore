@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using RedditSharp;
 
 namespace PatrickBotCore
 {
@@ -35,23 +38,78 @@ namespace PatrickBotCore
 
 
             var discordToken = configuration["DiscordToken"];
-            Console.WriteLine(discordToken);
 
             await _client.LoginAsync(TokenType.Bot, discordToken);
             await _client.StartAsync();
 
             _client.MessageReceived += MessageReceived;
 
-
+ 
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
 
         private async Task MessageReceived(SocketMessage message)
         {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+            var configuration = builder.Build();
+
+
+            var RedditAppId = configuration["RedditAppId"];
+            var RedditAppSecret = configuration["RedditAppSecret"];
+
+
             if (message.Content == "!ping")
             {
                 await message.Channel.SendMessageAsync("Pong!");
+            }
+            else if (message.Content == "!meme")
+            {
+                var subredditName = "programmerHumor";
+
+                var reddit = new Reddit();
+                var subreddit = reddit.GetSubreddit($"/r/{subredditName}");
+
+                var random = new Random();
+
+                var post = subreddit.Posts
+                    .Where(x => x.IsStickied == false)
+                    .Where(x => x.NSFW == false)
+                    .Skip(random.Next(1,40))
+                    .Take(1)
+                    .First();
+
+                var embedBuilder = new EmbedBuilder();
+
+                var badWords = new List<string>() {
+                    "fuk",
+                    "fuck",
+                    "bitch",
+                    "cunt",
+                    "ass"
+                };
+
+
+                var topComment = post.Comments.Any() 
+                    ? post.Comments
+                        .Where(c => !c.Body.ToLower().Split(" ").ToList()
+                            .Any(p => badWords.Contains(p)))
+                        .OrderBy(c => c.Upvotes)
+                        .Select(c => c.Body)
+                        .FirstOrDefault()
+                    : "";
+
+                embedBuilder.WithTitle(post.Title);
+                embedBuilder.WithFooter($"r/{post.SubredditName}");
+                embedBuilder.AddField("Upvotes", post.Upvotes, true);    // true - for inline
+                embedBuilder.AddField("Top comment", topComment, false);
+                embedBuilder.WithImageUrl(post.Url.ToString());
+                embedBuilder.WithColor(Color.Red);
+
+                await message.Channel.SendMessageAsync("", false, embedBuilder.Build());
             }
         }
 
