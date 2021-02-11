@@ -87,15 +87,19 @@ namespace PatrickBotCore
             var badWords = new List<string>() {
                     "fuk",
                     "fuck",
+                    "fucked",
+                    "fucking",
                     "bitch",
+                    "bitching",
                     "cunt",
-                    "ass"
+                    "ass",
+                    "asshole",
                 };
 
             var topComment = post.Comments.Any()
                 ? post.Comments
                     .Where(c => !c.Body.ToLower().Split(" ").ToList()
-                        .Any(p => badWords.Contains(p)))
+                        .Any(p => badWords.Any(bw => p.Contains(bw))))
                     .OrderBy(c => c.Upvotes)
                     .Select(c => c.Body)
                     .FirstOrDefault() ?? "The top comment was too spicy for work, shame :("
@@ -106,7 +110,7 @@ namespace PatrickBotCore
             embedBuilder.WithImageUrl(post.Url.ToString());
             embedBuilder.WithFooter($"r/{post.SubredditName}");
             embedBuilder.AddField("Upvotes", post.Upvotes, true);    // true - for inline
-                                                                     // embedBuilder.AddField("Top comment", topComment, false);
+            embedBuilder.AddField("Top comment", topComment, false);
             embedBuilder.WithColor(Color.Red);
             await Log(msg: new LogMessage(message: "Built the embed", severity: LogSeverity.Info, source: "SendMessageAsync"));
 
