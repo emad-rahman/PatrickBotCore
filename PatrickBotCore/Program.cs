@@ -115,7 +115,15 @@ namespace PatrickBotCore
             await Log(msg: new LogMessage(message: "Built the embed", severity: LogSeverity.Info, source: "SendMessageAsync"));
 
             // await message.Channel.TriggerTypingAsync();
-            await message.Channel.SendMessageAsync("", false, embedBuilder.Build());
+            var msg = await message.Channel.SendMessageAsync("", false, embedBuilder.Build());
+
+            var emojis = new List<Emoji>() { 
+                new Emoji("⬆️"),
+                new Emoji("⬇️")
+            }.ToArray<IEmote>();
+            
+            await msg.AddReactionsAsync(emojis);
+
             await Log(msg: new LogMessage(message: "Message sent", severity: LogSeverity.Info, source: "SendMessageAsync"));
         }
 
