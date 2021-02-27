@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using RedditSharp;
 
-namespace PatrickBotCore.Modues
+namespace PatrickBotCore.Modules
 {
     // for commands to be available, and have the Context passed to them, we must inherit ModuleBase
-    public class MemeCommands : ModuleBase
+    public class MemeCommands : BaseCommands
     {
         [Command("meme")]
         [Alias("m")]
         public async Task MemeCommand()
         {
-            await Log(msg: new LogMessage(message: "Starting the SendMessageAsync function", severity: LogSeverity.Info, source: "SendMessageAsync"));
+            await Log(msg: new LogMessage(message: "Starting MemeCommand function", severity: LogSeverity.Info, source: "MemeCommand"));
 
             var random = new Random();
 
@@ -24,7 +24,7 @@ namespace PatrickBotCore.Modues
 
             var reddit = new Reddit();
             var subreddit = reddit.GetSubreddit($"/r/{subredditName}");
-            await Log(msg: new LogMessage(message: "Got the subreddit", severity: LogSeverity.Info, source: "SendMessageAsync"));
+            await Log(msg: new LogMessage(message: "Got the subreddit", severity: LogSeverity.Info, source: "MemeCommand"));
             await Context.Channel.TriggerTypingAsync();
             
 
@@ -34,7 +34,7 @@ namespace PatrickBotCore.Modues
                 .Where(x => x.Upvotes > 100)
                 .Skip(random.Next(1, 40))
                 .First();
-            await Log(msg: new LogMessage(message: "Got the post", severity: LogSeverity.Info, source: "SendMessageAsync"));
+            await Log(msg: new LogMessage(message: "Got the post", severity: LogSeverity.Info, source: "MemeCommand"));
 
             var embedBuilder = new EmbedBuilder();
 
@@ -58,7 +58,7 @@ namespace PatrickBotCore.Modues
                     .Select(c => c.Body)
                     .FirstOrDefault() ?? "The top comment was too spicy for work, shame :("
                 : "Can't find a top comment";
-            await Log(msg: new LogMessage(message: "Got the top comment", severity: LogSeverity.Info, source: "SendMessageAsync"));
+            await Log(msg: new LogMessage(message: "Got the top comment", severity: LogSeverity.Info, source: "MemeCommand"));
 
             embedBuilder.WithTitle(post.Title);
             embedBuilder.WithImageUrl(post.Url.ToString());
@@ -66,7 +66,7 @@ namespace PatrickBotCore.Modues
             embedBuilder.AddField("Upvotes", post.Upvotes, true);    // true - for inline
             embedBuilder.AddField("Top comment", topComment, false);
             embedBuilder.WithColor(Color.Red);
-            await Log(msg: new LogMessage(message: "Built the embed", severity: LogSeverity.Info, source: "SendMessageAsync"));
+            await Log(msg: new LogMessage(message: "Built the embed", severity: LogSeverity.Info, source: "MemeCommand"));
 
             var msg = await Context.Channel.SendMessageAsync("", false, embedBuilder.Build());
 
@@ -77,13 +77,7 @@ namespace PatrickBotCore.Modues
 
             await msg.AddReactionsAsync(emojis);
 
-            await Log(msg: new LogMessage(message: "Message sent", severity: LogSeverity.Info, source: "SendMessageAsync"));
-        }
-
-        private Task Log(LogMessage msg)
-        {
-            Console.WriteLine(msg.ToString());
-            return Task.CompletedTask;
+            await Log(msg: new LogMessage(message: "Message sent", severity: LogSeverity.Info, source: "MemeCommand"));
         }
     }
 }
