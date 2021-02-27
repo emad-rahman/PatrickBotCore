@@ -108,7 +108,7 @@ namespace PatrickBotCore
 
             embedBuilder.WithTitle(post.Title);
             embedBuilder.WithImageUrl(post.Url.ToString());
-            embedBuilder.WithFooter($"r/{post.SubredditName}");
+            embedBuilder.WithFooter($"r/{post.SubredditName} (Brought to you by the pi)");
             embedBuilder.AddField("Upvotes", post.Upvotes, true);    // true - for inline
             embedBuilder.AddField("Top comment", topComment, false);
             embedBuilder.WithColor(Color.Red);
