@@ -52,8 +52,7 @@ namespace PatrickBotCore
         private ServiceProvider ConfigureServices()
         {
             // this returns a ServiceProvider that is used later to call for those services
-            // we can add types we have access to here, hence adding the new using statement:
-            // using csharpi.Services;
+            // we can add types we have access to here
             // the config we build is also added, which comes in handy for setting the command prefix!
             return new ServiceCollection()
                 .AddSingleton(Configuration)

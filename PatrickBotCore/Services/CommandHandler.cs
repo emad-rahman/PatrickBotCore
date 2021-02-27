@@ -74,7 +74,6 @@ namespace PatrickBotCore.Services
                 return;
             }
 
-           
             // execute command if one is found that matches
             await _commands.ExecuteAsync(context, argPos, _services); 
         }
@@ -88,7 +87,6 @@ namespace PatrickBotCore.Services
                 return;
             }
                 
-
             // log success to the console and exit this method
             if (result.IsSuccess)
             {
@@ -96,7 +94,6 @@ namespace PatrickBotCore.Services
                 return;
             }
                 
-
             // failure scenario, let's let the user know
             await context.Channel.SendMessageAsync($"Sorry, {context.User.Username}... something went wrong -> [{result}]!");
         }        
