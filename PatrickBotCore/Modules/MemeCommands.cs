@@ -54,7 +54,7 @@ namespace PatrickBotCore.Modules
                 ? post.Comments
                     .Where(c => !c.Body.ToLower().Split(" ").ToList()
                         .Any(p => badWords.Any(bw => p.Contains(bw))))
-                    .OrderBy(c => c.Upvotes)
+                    .OrderByDescending(c => c.Upvotes)
                     .Select(c => c.Body)
                     .FirstOrDefault() ?? "The top comment was too spicy for work, shame :("
                 : "Can't find a top comment";
