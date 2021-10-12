@@ -19,7 +19,7 @@ namespace PatrickBotCore.Modules
 
             var random = new Random();
 
-            var subreddits = new List<string>(){ "programmerHumor", "programmerreactions" };
+            var subreddits = new List<string>(){ "programmerHumor" };
             var subredditName = subreddits[random.Next(subreddits.Count)];
 
             var reddit = new Reddit();
@@ -31,7 +31,7 @@ namespace PatrickBotCore.Modules
             var post = subreddit.Posts
                 .Where(x => x.IsStickied == false)
                 .Where(x => x.NSFW == false)
-                .Where(x => x.Upvotes > 250)
+                .Where(x => x.Upvotes > 150)
                 .Skip(random.Next(1, 40))
                 .First();
             await Log(msg: new LogMessage(message: "Got the post", severity: LogSeverity.Info, source: "MemeCommand"));
