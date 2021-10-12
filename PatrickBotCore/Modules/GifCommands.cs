@@ -18,6 +18,7 @@ namespace PatrickBotCore.Modules
         }
 
         [Command("gifp")]
+        [Alias("pgif")]
         public async Task GifCommand(params String[] stringArray) {
             await Log(msg: new Discord.LogMessage(message: "Starting GifCommand function", severity: Discord.LogSeverity.Info, source: "GifCommand"));
 
@@ -31,6 +32,20 @@ namespace PatrickBotCore.Modules
             await TenorSearch(query);
         }
 
+        [Command("gif")]
+        public async Task RegularGifCommand(params String[] stringArray) {
+            await Log(msg: new Discord.LogMessage(message: "Starting GifCommand function", severity: Discord.LogSeverity.Info, source: "GifCommand"));
+
+            await Context.Channel.TriggerTypingAsync();
+
+            var query = string.Join(" ", stringArray);
+            await Log(msg: new Discord.LogMessage(message: $"User typed: [{query}]", severity: Discord.LogSeverity.Info, source: "GifCommand"));
+
+            query = $"{query}".Trim();
+
+            await TenorSearch(query);
+        }
+
         public async Task TenorSearch(string query) {
             var tenor = new TenorClient(_config["TenorApiKey"]);
             tenor.SetContentFilter(TenorSharp.Enums.ContentFilter.high);
@@ -39,7 +54,7 @@ namespace PatrickBotCore.Modules
             var gifs = tenor.Search(query).GifResults;
 
             var rand = new Random();
-            var gif = gifs[rand.Next(0, Math.Min(3, gifs.Length))].Url.OriginalString;
+            var gif = gifs[rand.Next(0, Math.Min(5, gifs.Length))].Url.OriginalString;
             await Log(msg: new Discord.LogMessage(message: $"Got the gif: [{gif}]", severity: Discord.LogSeverity.Info, source: "GifCommand"));
 
             await Context.Channel.SendMessageAsync(gif);
