@@ -48,6 +48,8 @@ namespace PatrickBotCore.Modules
                     "cunt",
                     "ass",
                     "asshole",
+                    "shit",
+                    "shitting"
                 };
 
             var topComment = post.Comments.Any()
@@ -63,6 +65,7 @@ namespace PatrickBotCore.Modules
             embedBuilder.WithTitle(post.Title);
             embedBuilder.WithImageUrl(post.Url.ToString());
             embedBuilder.WithFooter($"r/{post.SubredditName}");
+            embedBuilder.WithUrl($"https://reddit.com{post.Permalink}");
             embedBuilder.AddField("Upvotes", post.Upvotes, true);    // true - for inline
             embedBuilder.AddField("Top comment", topComment, false);
             embedBuilder.WithColor(Color.Red);
